@@ -2,7 +2,7 @@
   "name": "solar-energy-api",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js"
@@ -11,11 +11,29 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
     "dotenv": "^18.0.0",
     "express": "^5.2.1",
-    "pg": "^8.23.0"
+    "express-validator": "^7.3.2",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.12.1",
+    "pg": "^8.23.0",
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
-  }
+    "jest": "^30.5.2",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RishniPerera/solar-energy-api.git"
+  },
+  "bugs": {
+    "url": "https://github.com/RishniPerera/solar-energy-api/issues"
+  },
+  "homepage": "https://github.com/RishniPerera/solar-energy-api#readme"
 }

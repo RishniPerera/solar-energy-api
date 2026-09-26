@@ -9,3 +9,5 @@ app.get("/", (req, res) => {
         message: "Solar Energy API is running"
     });
 });
+ module.exports = app; 
+

@@ -3,10 +3,17 @@
   "version": "1.0.0",
   "description": "",
   "main": "src/server.js",
+
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "db:schema": "psql \"$env:DATABASE_URL\" -f db/schema.sql",
+    "db:seed": "node db/seed.js",
+    "db:seed:reset": "node db/seed.js --reset",
+    "seed": "node db/seed.js",
+    "seed:reset": "node db/seed.js --reset"
   },
+
   "keywords": [],
   "author": "",
   "license": "ISC",

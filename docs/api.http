@@ -1,0 +1,66 @@
+### Test 1 — User login (national)
+# @name nationalLogin
+POST http://localhost:3000/auth/token
+Content-Type: application/json
+
+{
+  "grant_type": "password",
+  "username": "national.admin",
+  "password": "Password123!"
+}
+
+### Test 2 — Device login
+# @name deviceLogin
+POST http://localhost:3000/auth/token
+Content-Type: application/json
+
+{
+  "grant_type": "device",
+  "meter_id": "MTR-00001"
+}
+
+### Test 3 — Wrong password (expect 401)
+POST http://localhost:3000/auth/token
+Content-Type: application/json
+
+{
+  "grant_type": "password",
+  "username": "national.admin",
+  "password": "wrongpass"
+}
+
+### Test 4 — Unknown user (expect 401)
+POST http://localhost:3000/auth/token
+Content-Type: application/json
+
+{
+  "grant_type": "password",
+  "username": "does.not.exist",
+  "password": "anything"
+}
+
+### Test 5 — Missing fields (expect 400)
+POST http://localhost:3000/auth/token
+Content-Type: application/json
+
+{
+  "grant_type": "password",
+  "username": "national.admin"
+}
+
+### Test 6 — Unknown grant_type (expect 400)
+POST http://localhost:3000/auth/token
+Content-Type: application/json
+
+{
+  "grant_type": "magic"
+}
+
+### Test 7 — Unknown meter (expect 401)
+POST http://localhost:3000/auth/token
+Content-Type: application/json
+
+{
+  "grant_type": "device",
+  "meter_id": "MTR-99999"
+}

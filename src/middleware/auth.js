@@ -59,9 +59,15 @@ async function enforceJurisdiction(req, res, next) {
 
     if (role === "national") return next();
 
-    const installationId = req.params.installationId
-      ? parseInt(req.params.installationId, 10)
-      : null;
+
+    // Routes use :id for atomic resources and :installationId for the
+// readings sub-collection. Accept either — first defined wins.
+const rawId = req.params.installationId ?? req.params.id;
+const installationId = rawId ? parseInt(rawId, 10) : null;
+
+    //const installationId = req.params.installationId
+     // ? parseInt(req.params.installationId, 10)
+      //: null;
 
     // Case A: request targets a specific installation
     if (installationId) {

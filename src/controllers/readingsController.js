@@ -182,7 +182,7 @@ exports.createReading = asyncHandler(async (req, res) => {
     );
 
     const created  = rows[0];
-    const location = `${req.protocol}://${req.get("host")}${req.baseUrl}/${created.id}`;
+    const location = `${req.protocol}://${req.get("host")}${req.baseUrl}${req.path}/${created.id}`;
 
     res.status(201).set("Location", location).json({ data: created });
   } catch (e) {

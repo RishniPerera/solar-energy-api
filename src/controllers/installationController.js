@@ -145,8 +145,6 @@ exports.getDistrictSummary = asyncHandler(async (req, res) => {
 });
 
 
-
-
 // ---------------------------------------------------------------------
 // POST /installations — create a new installation
 //   201 + Location on success, 400 on validation, 409 on duplicate meter_id
@@ -180,7 +178,7 @@ exports.createInstallation = asyncHandler(async (req, res) => {
     );
 
     const created  = rows[0];
-    const location = `${req.protocol}://${req.get("host")}${req.baseUrl}/${created.id}`;
+    const location = `${req.protocol}://${req.get("host")}${req.baseUrl}${req.path}/${created.id}`;
     res.status(201).set("Location", location).json({ data: created });
   } catch (e) {
     if (e.code === "23505") {

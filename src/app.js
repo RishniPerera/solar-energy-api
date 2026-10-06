@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
+const swaggerUi   = require("swagger-ui-express");
+const swaggerSpec = require("./swagger");
 require("dotenv").config();
 
 // Route modules
@@ -17,6 +19,10 @@ const app = express();
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json({ limit: "1mb" }));
+
+// OpenAPI / Swagger UI
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get("/openapi.json", (req, res) => res.json(swaggerSpec));
 
 // Root + health (public — no auth)
 app.get("/", (req, res) =>

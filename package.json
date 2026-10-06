@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "src/server.js",
-
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
@@ -13,7 +12,6 @@
     "seed": "node db/seed.js",
     "seed:reset": "node db/seed.js --reset"
   },
-
   "keywords": [],
   "author": "",
   "license": "ISC",

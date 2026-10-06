@@ -143,3 +143,151 @@ exports.getDistrictSummary = asyncHandler(async (req, res) => {
     },
   });
 });
+
+
+
+
+// ---------------------------------------------------------------------
+// POST /installations — create a new installation
+//   201 + Location on success, 400 on validation, 409 on duplicate meter_id
+// ---------------------------------------------------------------------
+exports.createInstallation = asyncHandler(async (req, res) => {
+  const {
+    substation_id, meter_id, inverter_id, owner_name,
+    capacity_kw, installed_at,
+  } = req.body || {};
+
+  const missing = [];
+  if (!substation_id) missing.push("substation_id");
+  if (!meter_id)      missing.push("meter_id");
+  if (capacity_kw === undefined) missing.push("capacity_kw");
+  if (!installed_at)  missing.push("installed_at");
+
+  if (missing.length > 0) {
+    throw new ApiError(400, "VALIDATION_ERROR",
+      "Missing required fields", { missing });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO solar_installations
+         (substation_id, meter_id, inverter_id, owner_name, capacity_kw, installed_at)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, substation_id, meter_id, inverter_id, owner_name,
+                 capacity_kw, installed_at`,
+      [substation_id, meter_id, inverter_id || null, owner_name || null,
+       capacity_kw, installed_at]
+    );
+
+    const created  = rows[0];
+    const location = `${req.protocol}://${req.get("host")}${req.baseUrl}/${created.id}`;
+    res.status(201).set("Location", location).json({ data: created });
+  } catch (e) {
+    if (e.code === "23505") {
+      throw new ApiError(409, "DUPLICATE_METER_ID",
+        "An installation already exists with that meter_id");
+    }
+    throw e;
+  }
+});
+
+// ---------------------------------------------------------------------
+// PUT /installations/:id — FULL replacement
+//   Client must send every field. Missing fields → 400.
+//   PUT is idempotent: applying it twice has the same effect.
+// ---------------------------------------------------------------------
+exports.replaceInstallation = asyncHandler(async (req, res) => {
+  const {
+    substation_id, meter_id, inverter_id, owner_name,
+    capacity_kw, installed_at,
+  } = req.body || {};
+
+  const missing = [];
+  if (!substation_id) missing.push("substation_id");
+  if (!meter_id)      missing.push("meter_id");
+  if (capacity_kw === undefined) missing.push("capacity_kw");
+  if (!installed_at)  missing.push("installed_at");
+
+  if (missing.length > 0) {
+    throw new ApiError(400, "VALIDATION_ERROR",
+      "PUT requires a complete representation", { missing });
+  }
+
+  const { rows } = await pool.query(
+    `UPDATE solar_installations
+        SET substation_id = $1,
+            meter_id      = $2,
+            inverter_id   = $3,
+            owner_name    = $4,
+            capacity_kw   = $5,
+            installed_at  = $6
+      WHERE id = $7
+      RETURNING id, substation_id, meter_id, inverter_id, owner_name,
+                capacity_kw, installed_at`,
+    [substation_id, meter_id, inverter_id || null, owner_name || null,
+     capacity_kw, installed_at, req.params.id]
+  );
+
+  if (!rows[0]) throw new ApiError(404, "NOT_FOUND", "Installation not found");
+  res.json({ data: rows[0] });
+});
+
+// ---------------------------------------------------------------------
+// PATCH /installations/:id — PARTIAL update
+//   Only fields present in the body are updated. Everything else is
+//   left untouched. Never use PUT for this — that's what PATCH is for.
+// ---------------------------------------------------------------------
+exports.patchInstallation = asyncHandler(async (req, res) => {
+  const ALLOWED = [
+    "substation_id", "inverter_id", "owner_name",
+    "capacity_kw", "installed_at",
+  ];
+
+  const sets   = [];
+  const params = [];
+  let p = 1;
+
+  for (const key of ALLOWED) {
+    if (key in req.body) {
+      sets.push(`${key} = $${p++}`);
+      params.push(req.body[key]);
+    }
+  }
+
+  if (sets.length === 0) {
+    throw new ApiError(400, "VALIDATION_ERROR",
+      "No updatable fields supplied",
+      { allowed: ALLOWED });
+  }
+
+  params.push(req.params.id);
+
+  const { rows } = await pool.query(
+    `UPDATE solar_installations
+        SET ${sets.join(", ")}
+      WHERE id = $${p}
+      RETURNING id, substation_id, meter_id, inverter_id, owner_name,
+                capacity_kw, installed_at`,
+    params
+  );
+
+  if (!rows[0]) throw new ApiError(404, "NOT_FOUND", "Installation not found");
+  res.json({ data: rows[0] });
+});
+
+// ---------------------------------------------------------------------
+// DELETE /installations/:id — 204 No Content
+//   Cascade removes its readings (ON DELETE CASCADE in schema).
+// ---------------------------------------------------------------------
+exports.deleteInstallation = asyncHandler(async (req, res) => {
+  const { rowCount } = await pool.query(
+    "DELETE FROM solar_installations WHERE id = $1",
+    [req.params.id]
+  );
+
+  if (rowCount === 0) {
+    throw new ApiError(404, "NOT_FOUND", "Installation not found");
+  }
+
+  res.status(204).end();
+});
